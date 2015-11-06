@@ -21,7 +21,7 @@ public class SSCMessage {
 			flags = message.getFlags();
 			for(String flag : flags.getUserFlags())
 			{
-				result += flag + " ";
+				result += "<" + flag + "> ";
 			}
 			if(flags.contains(Flag.SEEN)) 
 				result += " <SEEN> ";
@@ -41,7 +41,6 @@ public class SSCMessage {
 		} 
 		catch (MessagingException e) 
 		{
-			e.printStackTrace();
 			return result + "       <<< N o   s u b j e c t >>>";
 		}
 	}
