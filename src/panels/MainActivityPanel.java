@@ -20,9 +20,11 @@ import javax.mail.internet.InternetAddress;
 import javax.mail.internet.MimeBodyPart;
 import javax.mail.internet.MimeMessage;
 import javax.mail.internet.MimeMultipart;
+import javax.swing.JButton;
 import javax.swing.JFileChooser;
 import javax.swing.JLabel;
 import javax.swing.JList;
+import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTextArea;
@@ -43,6 +45,7 @@ public class MainActivityPanel extends JPanel implements Observer {
 	private ArrayList<File> currentFileAttachment;
 	private JLabel attachmentsView = new JLabel();
 	private JTextField toField,fromField,subjectField,ccField;
+	private ArrayList<String> listOfCC;
 	public MainActivityPanel()
 	{
 		super(new GridBagLayout());
@@ -122,10 +125,18 @@ public class MainActivityPanel extends JPanel implements Observer {
 	public void createMailView()
 	{
 		currentFileAttachment = new ArrayList<File>();
+		listOfCC = new ArrayList<String>();
 		removeAll();
 		setLayout(new GridBagLayout());
 		GridBagConstraints left = new GridBagConstraints();
         left.anchor = GridBagConstraints.EAST;
+        GridBagConstraints buttonRight = new GridBagConstraints();
+        buttonRight.anchor = GridBagConstraints.WEST;
+        buttonRight.gridwidth = GridBagConstraints.REMAINDER;
+        GridBagConstraints center = new GridBagConstraints();
+        center.weightx = 2.0;
+        center.fill  = GridBagConstraints.HORIZONTAL;
+        center.gridwidth = GridBagConstraints.HORIZONTAL;
         GridBagConstraints right = new GridBagConstraints();
         right.weightx = 2.0;
         right.fill = GridBagConstraints.HORIZONTAL;
@@ -136,6 +147,7 @@ public class MainActivityPanel extends JPanel implements Observer {
 		JLabel subject = new JLabel("Subject: "); subject.setForeground(Color.WHITE);
 		JLabel attachments = new JLabel("Attachments: "); attachments.setForeground(Color.WHITE);
 		attachmentsView = new JLabel("None"); attachmentsView.setForeground(Color.WHITE);
+		JButton addCC = new JButton("Add");
 		fromField = new JTextField(); 
 			fromField.setForeground(Color.WHITE);
 			fromField.setBackground(new Color(40,40,40));
@@ -143,11 +155,29 @@ public class MainActivityPanel extends JPanel implements Observer {
 			toField.setForeground(Color.WHITE);
 			toField.setBackground(new Color(40,40,40));
 		ccField = new JTextField(); 
+			ccField.setEditable(false);
 			ccField.setForeground(Color.WHITE);
 			ccField.setBackground(new Color(40,40,40));
+		for(int i = 0 ; i < listOfCC.size(); i++)
+		{
+			ccField.setText(ccField.getText() + " ; " + listOfCC.get(i));
+		}
 		subjectField = new JTextField(); 
 			subjectField.setForeground(Color.WHITE);
 			subjectField.setBackground(new Color(40,40,40));
+		addCC.addActionListener(e ->
+		{
+			String path = JOptionPane.showInputDialog("Add an address.");
+			listOfCC.add(path);
+			ccField.setText("");
+			for(int i = 0 ; i < listOfCC.size(); i++)
+			{
+				if(i!=0)
+					ccField.setText(ccField.getText() + " ; " + listOfCC.get(i));
+				else
+					ccField.setText(listOfCC.get(i));
+			}
+		});
 		mainArea.setEditable(true);
        	mainArea.setBackground(new Color(24,24,24));
        	mainArea.setForeground(Color.WHITE);
@@ -163,7 +193,7 @@ public class MainActivityPanel extends JPanel implements Observer {
 		revalidate();
 		add(from,left); add(fromField,right);
 		add(to,left); add(toField,right);
-		add(cc,left); add(ccField,right);
+		add(cc,left); add(ccField,center); add(addCC,buttonRight);
 		add(subject,left); add(subjectField,right);
 		add(attachments,left); add(attachmentsView,right);
 		add(scrollPane,constraints);
@@ -177,6 +207,12 @@ public class MainActivityPanel extends JPanel implements Observer {
 			message.setFrom(new InternetAddress(fromField.getText()));
 			message.setRecipients(Message.RecipientType.TO,
 					InternetAddress.parse(toField.getText()));
+			InternetAddress[] ccAddresses = new InternetAddress[listOfCC.size()];
+			for(int i = 0 ; i < listOfCC.size() ; i++)
+			{
+				ccAddresses[i] = new InternetAddress(listOfCC.get(i));
+			}
+			message.setRecipients(Message.RecipientType.CC, ccAddresses);
 			message.setSubject(subjectField.getText());
 			MimeBodyPart messageBodyPart =  new MimeBodyPart();
 			messageBodyPart.setText(mainArea.getText());
@@ -196,7 +232,6 @@ public class MainActivityPanel extends JPanel implements Observer {
 		}
 		catch(Exception e)
 		{
-			e.printStackTrace();
 			return false;
 		}
 		return true;
